@@ -4,7 +4,7 @@ metadata:
   name: todo-app
   labels:
     app: todo-app
-  namespace: dev
+  namespace: prod
 spec:
   replicas: 1
   selector:
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: todo-app
-          image: docker.io/jorgejo/todo-app:e98b717
+          image: docker.io/jorgejo/todo-app:0e29a69
           ports:
             - containerPort: 80
           imagePullPolicy: Always

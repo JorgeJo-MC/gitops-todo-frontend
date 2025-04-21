@@ -1,4 +1,4 @@
-name: Build & Push to Docker Hub
+name: Build, Tag, Push & Deploy Angular App
 
 on:
   push:
@@ -8,40 +8,48 @@ on:
       - development
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
-    steps:
-      - name: 🧾 Checkout code
-        uses: actions/checkout@v3
+    env:
+      IMAGE_NAME: todo-app
 
-      - name: 🛠️ Set up Docker Buildx
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set tag (use short commit SHA)
+        id: vars
+        run: echo "TAG=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: 🔐 Login to Docker Hub
+      - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: 🏷️ Set image tags
-        id: meta
-        run: |
-          IMAGE=todo-app
-          BRANCH=${GITHUB_REF_NAME}
-          echo "IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE" >> $GITHUB_ENV
-          if [ "$BRANCH" = "main" ]; then
-            echo "TAGS=${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE:$BRANCH,${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE:latest" >> $GITHUB_ENV
-          else
-            echo "TAGS=${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE:$BRANCH" >> $GITHUB_ENV
-          fi
-
-      - name: 📦 Build and Push Docker Image
+      - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ${{ env.TAGS }}
+          tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
 
-      - name: ✅ Print deployed image tag
-        run: echo "Image ${{ env.TAGS }}"
+      - name: Update deployment image tag
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          FILE="manifests/${BRANCH}/deployment.yaml"
+          sed -i "s|image:.*|image: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${TAG}|" "$FILE"
+
+      - name: Commit and Push manifest changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git manifests/${GITHUB_REF_NAME}/deployment.yaml
+          git commit -m "ci: update image tag to $TAG"
+          git push origin $GITHUB_REF_NAME

@@ -50,6 +50,6 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git manifests/${GITHUB_REF_NAME}/deployment.yaml
+          git add manifests/${GITHUB_REF_NAME}/deployment.yaml
           git commit -m "ci: update image tag to $TAG"
           git push origin $GITHUB_REF_NAME

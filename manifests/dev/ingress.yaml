@@ -4,8 +4,9 @@ metadata:
   name: todo-app-ingress
   namespace: dev
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/issuer: letsencrypt-nginx
 spec:
+  ingressClassName: nginx
   rules:
     - host: todo-dev.dev-expert.pro
       http:
@@ -17,3 +18,7 @@ spec:
                 name: todo-app
                 port:
                   number: 80
+  tls:
+    - hosts:
+        - todo-dev.dev-expert.pro
+      secretName: letsencrypt-nginx

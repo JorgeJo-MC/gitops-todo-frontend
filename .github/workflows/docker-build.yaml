@@ -28,14 +28,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Push Docker Image
+      - name: Set image tags
+        id: meta
+        run: |
+          echo "TAG=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+          if [ "$GITHUB_REF_NAME" = "main" ]; then
+            echo "TAGS=ghcr.io/${{ github.repository }}/todo-app:${GITHUB_REF_NAME},ghcr.io/${{ github.repository }}/todo-app:latest" >> $GITHUB_ENV
+          else
+            echo "TAGS=ghcr.io/${{ github.repository }}/todo-app:${GITHUB_REF_NAME}" >> $GITHUB_ENV
+          fi
+
+      - name: 📦 Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/todo-app:${{ github.ref_name }}
-            ${{ github.ref_name == 'main' && 'ghcr.io/${{ github.repository }}/todo-app:latest' || '' }}
+          tags: ${{ env.TAGS }}
 
       - name: Print deployed image tag
-        run: echo "Deployed image: $IMAGE_NAME:${{ github.ref_name }}"
+        run: echo "Deployed image(s): ${{ env.TAGS }}"

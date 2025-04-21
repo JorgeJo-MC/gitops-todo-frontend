@@ -46,4 +46,4 @@ jobs:
           tags: ${{ env.TAGS }}
 
       - name: Print deployed image tag
-        run: echo "Deployed image(s): ${{ env.TAGS }}"
+        run: echo "Deployed image(s) = ${{ env.TAGS }}"

@@ -17,6 +17,6 @@ spec:
     spec:
       containers:
         - name: todo-app
-          image: docker.io/jorgejo/todo-app:dev
+          image: docker.io/jorgejo/todo-app:development
           ports:
             - containerPort: 80

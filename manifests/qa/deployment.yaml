@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: todo-app
-          image: docker.io/jorgejo/todo-app:27c6db4
+          image: docker.io/jorgejo/todo-app:07a4e2f
           ports:
             - containerPort: 80
           imagePullPolicy: Always
